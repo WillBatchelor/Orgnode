@@ -37,6 +37,19 @@ import re
 import sys
 import datetime
 
+REGEX_FORMAT = '\s+<(\d+)\-(\d+)\-(\d+)|.[a-z]+.|(\d+)\:(\d+)'
+
+
+def date_format(data):
+    if len(data) == 5:
+        element_time = datetime.datetime(data.group(1), data.group(2),
+                                         data.group(3), data.group(4),
+                                         data.group(5))
+    if len(data) == 3:
+        element_time = datetime.datetime(data.group(1), data.group(2),
+                                         data.group(3))
+    return element_time
+
 
 def makelist(filename):
     """
@@ -44,7 +57,6 @@ def makelist(filename):
     created from this file.
     """
     ctr = 0
-
     try:
         f = open(filename, 'r')
     except IOError:
@@ -113,22 +125,14 @@ def makelist(filename):
                 propdict[prop_srch.group(1)] = prop_srch.group(2)
                 continue
             sd_re = re.search(
-                'SCHEDULED:\s+<(\d+)\-(\d+)\-(\d+).[a-z]+.(\d+)\:(\d+)', line)
+                'SCHEDULED:{}'.format(REGEX_FORMAT), line)
             if sd_re:
-                sched_date = datetime.datetime(int(sd_re.group(1)),
-                                               int(sd_re.group(2)),
-                                               int(sd_re.group(3)),
-                                               int(sd_re.group(4)),
-                                               int(sd_re.group(5)))
+                sched_date = date_format(sd_re)
 
             dd_re = re.search(
-                'DEADLINE:\s+<(\d+)\-(\d+)\-(\d+).[a-z]+.(\d+)\:(\d+)', line)
+                'DEADLINE:{}'.format(REGEX_FORMAT), line)
             if dd_re:
-                deadline_date = datetime.datetime(int(dd_re.group(1)),
-                                                  int(dd_re.group(2)),
-                                                  int(dd_re.group(3)),
-                                                  int(dd_re.group(4)),
-                                                  int(dd_re.group(5)))
+                deadline_date = date_format(dd_re)
 
     # write out last node
     thisNode = Orgnode(level, heading, bodytext, tag1, alltags)
